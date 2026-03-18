@@ -158,7 +158,7 @@ ggplot(data=airquality,aes(x=Date,y=Temp))+geom_point()+geom_line()+
 
 
 
-# Maak opniew bovenstaande visulisaties, maar nu met de uniforme variabelen
+# Maak opniew bovenstaande visualisaties, maar nu met de uniforme variabelen
 
 
 ##----------------------------------------------------------
