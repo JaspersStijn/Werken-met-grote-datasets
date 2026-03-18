@@ -22,10 +22,20 @@ library(BSDA)
 # Geen R code, maar een voorbeeld van een dataset uit de "TidyTuesday database":
 # https://github.com/rfordatascience/tidytuesday/blob/main/data/2026/readme.md
 
-tt_object = tt_load("2026-03-10")
-tt_object$absolute_judgements
-tt_object$pairwise_comparisons
-tt_object$respondent_metadata
+
+tuesdata <- tidytuesdayR::tt_load('2026-03-24')
+head(tuesdata$pi_digits)
+barplot(table(tuesdata$pi_digits$digit[1:100]))
+barplot(table(tuesdata$pi_digits$digit[1:1000]))
+barplot(table(tuesdata$pi_digits$digit[1:10000]))
+barplot(table(tuesdata$pi_digits$digit[1:100000]))
+
+tuesdata <- tidytuesdayR::tt_load("2025-02-04")
+head(tuesdata$simpsons_script_lines)
+tuesdata$simpsons_characters%>%filter(name%in%c("Homer Simpson","Marge Simpson","Bart Simpson"))
+test = tuesdata$simpsons_script_lines%>% filter(speaking_line==TRUE) %>% group_by(episode_id,character_id) %>% summarise(count=n()) %>% left_join(tuesdata$simpsons_characters,by=c("character_id"="id"))
+ggplot(data=test%>%filter(name%in%c("Homer Simpson","Marge Simpson","Bart Simpson","Lisa Simpson")),aes(x=episode_id,y=count,color=name))+geom_boxplot()
+
 
 ##----------------------------------------------------------
 ## Deel II: soorten veranderlijken en samenvattende getallen
@@ -103,6 +113,27 @@ ggplot(data=pizzasize, aes(x=Diameter,y=..density..,fill=Store) ) +
 ggplot(data=pizzasize,aes(x=Topping,fill=Store))+geom_bar(position = "dodge")
 ggplot(data=pizzasize,aes(x=Topping,fill=Store))+geom_bar(position = "stack")
 
+
+# 2 numerieke variabelen
+
+data(airquality)
+head(airquality)
+
+# Puntenwolk
+
+ggplot(data=airquality,aes(x=Temp,y=Wind))+geom_point()+
+  xlab("Temperatuur (Fahrenheit)")+
+  ylab("Windsnelheid (mijl per uur)")
+
+# Lijnplot
+
+airquality <- airquality %>%
+  mutate(Date = as.Date(paste(1973, Month, Day, sep = "-")))
+head(airquality)
+
+ggplot(data=airquality,aes(x=Date,y=Temp))+geom_point()+geom_line()+
+  xlab("Datum")+
+  ylab("Temperatuur (Fahrenheit)")
 
 
 ## Oefeningen
