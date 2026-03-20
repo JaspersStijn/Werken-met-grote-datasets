@@ -34,7 +34,7 @@ tuesdata <- tidytuesdayR::tt_load("2025-02-04")
 head(tuesdata$simpsons_script_lines)
 tuesdata$simpsons_characters%>%filter(name%in%c("Homer Simpson","Marge Simpson","Bart Simpson"))
 test = tuesdata$simpsons_script_lines%>% filter(speaking_line==TRUE) %>% group_by(episode_id,character_id) %>% summarise(count=n()) %>% left_join(tuesdata$simpsons_characters,by=c("character_id"="id"))
-ggplot(data=test%>%filter(name%in%c("Homer Simpson","Marge Simpson","Bart Simpson","Lisa Simpson")),aes(x=episode_id,y=count,color=name))+geom_boxplot()
+ggplot(data=test%>%filter(name%in%c("Homer Simpson","Marge Simpson","Bart Simpson","Lisa Simpson")),aes(x=name,y=count,color=name))+geom_boxplot()
 
 
 ##----------------------------------------------------------
