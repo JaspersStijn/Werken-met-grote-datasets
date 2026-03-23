@@ -6,8 +6,6 @@
 # In dit document voorzien we de R code die we ook in de PowerPoint tijdens de workshop gebruiken. De oefeningen worden in een apart
 # document uitgewerkt.
 
-install.packages("tidytuesdayR")
-
 ## Laden van de R libraries die we nodig hebben
 ##----------------------------------------------
 
@@ -24,7 +22,6 @@ library(BSDA)
 # Geen R code, maar een voorbeeld van een dataset uit de "TidyTuesday database":
 # https://github.com/rfordatascience/tidytuesday/blob/main/data/2026/readme.md
 
-
 tuesdata <- tidytuesdayR::tt_load('2026-03-24')
 head(tuesdata$pi_digits)
 barplot(table(tuesdata$pi_digits$digit[1:100]))
@@ -36,8 +33,7 @@ tuesdata <- tidytuesdayR::tt_load("2025-02-04")
 head(tuesdata$simpsons_script_lines)
 tuesdata$simpsons_characters%>%filter(name%in%c("Homer Simpson","Marge Simpson","Bart Simpson"))
 test = tuesdata$simpsons_script_lines%>% filter(speaking_line==TRUE) %>% group_by(episode_id,character_id) %>% summarise(count=n()) %>% left_join(tuesdata$simpsons_characters,by=c("character_id"="id"))
-ggplot(data=test%>%filter(name%in%c("Homer Simpson","Marge Simpson","Bart Simpson","Lisa Simpson")),aes(x=name,y=count,color=name))+geom_boxplot()
-
+ggplot(data=test%>%filter(name%in%c("Homer Simpson","Marge Simpson","Bart Simpson","Lisa Simpson")),aes(x=episode_id,y=count,color=name))+geom_boxplot()
 
 ##----------------------------------------------------------
 ## Deel II: soorten veranderlijken en samenvattende getallen
@@ -115,7 +111,6 @@ ggplot(data=pizzasize, aes(x=Diameter,y=..density..,fill=Store) ) +
 ggplot(data=pizzasize,aes(x=Topping,fill=Store))+geom_bar(position = "dodge")
 ggplot(data=pizzasize,aes(x=Topping,fill=Store))+geom_bar(position = "stack")
 
-
 # 2 numerieke variabelen
 
 data(airquality)
@@ -137,30 +132,49 @@ ggplot(data=airquality,aes(x=Date,y=Temp))+geom_point()+geom_line()+
   xlab("Datum")+
   ylab("Temperatuur (Fahrenheit)")
 
-
 ## Oefeningen
 
 # 1.  Onderzoek de variabele “CrustDescription”
 ### Maak een gepaste grafische voorstelling, waarbij je al dan niet een opsplitsing maakt per winkel
 
+ggplot(data=pizzasize,aes(x=CrustDescription))+geom_bar()
+ggplot(data=pizzasize,aes(x=CrustDescription,fill=Store))+geom_bar(position = "dodge")
+ggplot(data=pizzasize,aes(x=CrustDescription,fill=Store))+geom_bar(position = "stack")
+
 
 ###Gebruikt elke winkel dezelfde benamingen?
+
+# Neen -> Classic en Mid waarschijnlijk zelfde soort korst, maar met verschillende benamingen. 
+#      -> ThinCrust en ThinNCrispy waarschijnlijk zelfde soort korst, maar met verschillende benamingen.
 
 
   
 # 2.   Onderzoek of de diameters van de pizza’s afhangen van de topping
 ### Maak een gepaste grafische voorstelling, waarbij je eerst de winkel negeert
-
+ggplot(data=pizzasize,aes(x=Diameter,y=Topping))+geom_boxplot()
 ### Maak een gepaste grafische voorstelling, waarbij je ook de winkel includeert
+ggplot(data=pizzasize,aes(x=Diameter,y=Topping,fill=Store))+geom_boxplot()
 
 
 ## Extra Oefeningen
 
 # We schonen de data verder op, op basis van de bevindingen in onze visualisaties
 
+pizzasize = pizzasize %>% mutate(Crust_uniform = case_when(CrustDescription %in% c("ClassicCrust","MidCrust") ~ "Medium",
+                                                           CrustDescription %in% c("DeepPan") ~ "Thick",
+                                                           CrustDescription %in% c("ThinCrust","ThinNCrispy") ~ "Thin"),
+                                 Topping_uniform = case_when(Topping %in% c("Supreme","SuperSupremo") ~ "Supreme",
+                                                             .default = Topping))
 
 
-# Maak opniew bovenstaande visualisaties, maar nu met de uniforme variabelen
+# Maak opniew bovenstaande visulisaties, maar nu met de uniforme variabelen
+ggplot(data=pizzasize,aes(x=Topping_uniform,fill=Store))+geom_bar(position = "dodge")
+ggplot(data=pizzasize,aes(x=Topping_uniform,fill=Store))+geom_bar(position = "stack")
+ggplot(data=pizzasize,aes(x=Crust_uniform))+geom_bar()
+ggplot(data=pizzasize,aes(x=Crust_uniform,fill=Store))+geom_bar(position = "dodge")
+ggplot(data=pizzasize,aes(x=Crust_uniform,fill=Store))+geom_bar(position = "stack")
+ggplot(data=pizzasize,aes(x=Diameter,y=Topping_uniform))+geom_boxplot()
+ggplot(data=pizzasize,aes(x=Diameter,y=Topping_uniform,fill=Store))+geom_boxplot()
 
 
 ##----------------------------------------------------------
@@ -221,10 +235,16 @@ t.test(pizzasize$Diameter[pizzasize$Store=="EagleBoys"]/2.54,
 ## Oefeningen
 
 # Bereken een 99% betrouwbaarheidsinterval voor de grootte van Domino’s pizza’s (in cm)
+t.test(pizzasize$Diameter[pizzasize$Store=="Dominos"], mu=27, alternative="two.sided", conf.level = 0.99)$conf.int
 
 # De website van Domino’s vermeld dat een “Thin & Crispy pizza” 30 cm groot is. 
 # Klopt deze bewering volgens de data in de gegeven dataset?
+t.test(pizzasize$Diameter[pizzasize$Store=="Dominos" & pizzasize$CrustDescription == "ThinNCrispy"], mu=30, alternative="two.sided")
 
 # Je verwacht dat “DeepPan” pizza’s (met een dikke korst) door de bereidingswijze wel een kleinere diameter zullen hebben dan pizza’s met een dunnere korst.
 # Ga deze bewering na voor Domino’s pizza’s als je vergelijkt met een klassieke korst (“ClassicCrust”)
+t.test(pizzasize$Diameter[pizzasize$Store=="Dominos" & pizzasize$CrustDescription=="DeepPan"], 
+       pizzasize$Diameter[pizzasize$Store=="Dominos" & pizzasize$CrustDescription=="ClassicCrust"], alternative="less")
 # Ga deze bewering na voor Domino’s pizza’s als je vergelijkt met een dunne korst (“ThinNCrispy”)
+t.test(pizzasize$Diameter[pizzasize$Store=="Dominos" & pizzasize$CrustDescription=="DeepPan"], 
+       pizzasize$Diameter[pizzasize$Store=="Dominos" & pizzasize$CrustDescription=="ThinNCrispy"], alternative="less")
